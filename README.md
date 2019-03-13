@@ -1,5 +1,7 @@
 # AsyncResourcePool
 
+[![Build Status](https://travis-ci.com/senid231/async_resource_pool.svg?branch=master)](https://travis-ci.com/senid231/async_resource_pool)
+
 TODO:
 * write description
 * thread safety using Mutex

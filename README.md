@@ -13,6 +13,12 @@ Add this line to your application's Gemfile:
 gem 'async_resource_pool'
 ```
 
+or 
+
+```ruby
+gem 'async/resource_pool'
+```
+
 And then execute:
 
     $ bundle
@@ -24,6 +30,36 @@ Or install it yourself as:
 ## Usage
 
 TODO: Write usage instructions here
+
+```ruby
+pool = Async::ResourcePool.new(2)
+
+Async do
+  
+    Async do
+        pool.acquire do
+            Async::Task.current.sleep(6) 
+        end
+    end
+    
+    Async do
+        pool.acquire
+        Async::Task.current.sleep(6)
+        pool.release
+    end
+    
+    Async do
+        begin
+            pool.acquire(5) do
+                # will not be here because of timeout
+            end
+        rescue Async::ResourcePool::TimeoutError => _
+            # will be here
+        end
+    end
+  
+end
+```
 
 ## Development
 

@@ -1,5 +1,6 @@
 # AsyncResourcePool
 
+[![Gem Version](https://badge.fury.io/rb/async_resource_pool.svg)](https://rubygems.org/gems/async_resource_pool)
 [![Build Status](https://travis-ci.com/senid231/async_resource_pool.svg?branch=master)](https://travis-ci.com/senid231/async_resource_pool)
 
 TODO:

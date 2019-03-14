@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    async_resource_pool (0.1.0)
+    async_resource_pool (0.2.0)
       async
 
 GEM

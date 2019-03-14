@@ -15,7 +15,7 @@ module Async
 
         @limit = limit
         @wakeup_strategy = wakeup_strategy
-        @owners = []
+        @owners = initialize_owners
         @waiters = []
         @thread_mutex = Mutex.new
       end
@@ -26,11 +26,11 @@ module Async
       # Will raise Async::ResourcePool::AlreadyOwnError if resource already acquired.
       # @param timeout [Integer|Float] - timeout in seconds (default nil).
       def acquire(timeout = nil)
-        raise Async::ResourcePool::AlreadyOwnError.new if already_acquired?
+        raise Async::ResourcePool::AlreadyOwnError.new if acquire_allowed?
 
         unless acquire_if_available
           timeout.nil? ? Async::Task.yield : wait_with_timeout(timeout)
-          @thread_mutex.synchronize { @owners.push(Fiber.current) }
+          @thread_mutex.synchronize &method(:add_owner)
         end
 
         if block_given?
@@ -48,7 +48,7 @@ module Async
       # Will raise Async::ResourcePool::AlreadyOwnError if resource already acquired.
       # @return [True|False] returns true if resource was acquired.
       def try_acquire
-        raise Async::ResourcePool::AlreadyOwnError.new if already_acquired?
+        raise Async::ResourcePool::AlreadyOwnError.new if acquire_allowed?
 
         if acquire_if_available
           true
@@ -64,16 +64,17 @@ module Async
       # Will raise Async::ResourcePool::DoesNotOwnError if fiber does not own resource.
       def release
         raise Async::ResourcePool::DoesNotOwnError.new unless already_acquired?
-        @owners.delete(Fiber.current)
+        remove_owner
         wakeup
       end
 
-      # @return [True|False] returns true if resource already acquired by fiber
+      # @return [True|False] returns true if resource already acquired by fiber.
       def already_acquired?
         @owners.include?(Fiber.current)
       end
 
-      # @return [True|False] returns true if pool has available resource
+      # @return [True|False] returns true if pool has available resource.
+      # Depends on a limit for current resource pool.
       def can_be_acquired?
         @owners.size < @limit
       end
@@ -90,6 +91,12 @@ module Async
         }
       end
 
+      # @return [True|False] returns true if fiber allowed to acquire resource.
+      # Acquire does not allowed if fiber have already acquired resource.
+      def acquire_allowed?
+        already_acquired?
+      end
+
       private
 
       def wakeup
@@ -104,23 +111,13 @@ module Async
         end
       end
 
-      def wakeup_fiber(fiber)
-        if @wakeup_strategy == :immediately
-          fiber.resume
-        else
-          Async::Task.current.reactor << fiber
-        end
-      end
-
       def acquire_if_available
-        fiber = Fiber.current
-
         @thread_mutex.synchronize do
           if can_be_acquired?
-            @owners.push(fiber)
+            add_owner
             true
           else
-            @waiters.push(fiber)
+            @waiters.push(Fiber.current)
             false
           end
         end
@@ -138,6 +135,18 @@ module Async
             raise Async::ResourcePool::TimeoutError.new(timeout)
           end
         end
+      end
+
+      def initialize_owners
+        []
+      end
+
+      def add_owner
+        @owners.push(Fiber.current)
+      end
+
+      def remove_owner
+        @owners.delete(Fiber.current)
       end
 
     end

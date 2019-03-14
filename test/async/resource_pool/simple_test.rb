@@ -1,8 +1,8 @@
 require "test_helper"
 
-class AsyncResourcePoolTest < Minitest::Test
+class Async::ResourcePool::SimpleTest < Minitest::Test
   def setup
-    @pool = Async::ResourcePool.new(2)
+    @pool = Async::ResourcePool::Simple.new(2)
   end
 
   def test_without_timeout_and_without_block

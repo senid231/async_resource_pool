@@ -1,10 +1,11 @@
 
 lib = File.expand_path('../lib', __FILE__)
 $LOAD_PATH.unshift(lib) unless $LOAD_PATH.include?(lib)
+require 'async/resource_pool/version'
 
 Gem::Specification.new do |spec|
   spec.name          = 'async_resource_pool'
-  spec.version       = '0.1.0'
+  spec.version       = Async::ResourcePool::VERSION
   spec.authors       = ['Denis Talakevich']
   spec.email         = ['senid231@gmail.com']
 

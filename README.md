@@ -5,7 +5,6 @@
 
 TODO:
 * write description
-* thread safety using Mutex
 * acquire more than one connection
 
 ## Installation
